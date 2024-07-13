@@ -1,0 +1,15 @@
+{
+
+  "model": "origin_visuals:geo/blazeborn.geo.json",
+  "texture": "origin_visuals:textures/blazeborn.png",
+  "hidden": [
+    "leftArm",
+    "rightArm",
+    "leftSleeve",
+    "rightSleeve"
+  ],
+  "rendering_offsets": {
+    "left": [0,0.1,0],
+    "right": [0,0.1,0]
+  }
+}

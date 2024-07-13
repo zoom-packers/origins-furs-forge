@@ -1,0 +1,25 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "com.pandaismyname1.origin_visuals.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "refmap": "origin_visuals.refmap.json",
+  "mixins": [
+    "GeoBoneMixin",
+    "OriginsRegistryMixin",
+    "OriginsRegistryMixin$OriginListMixin$ORIF",
+  ],
+  "client": [
+    "ItemRendererMixin",
+    "Mojang_ModelPartMixin",
+    "PlayerEntityMixin",
+    "PlayerEntityMixin$ChangeElytraTextureMixin",
+    "PlayerEntityMixin$OtherClientPlayerEntityMixin",
+    "client.PlayerRendererMixin",
+    "client.PlayerRendererMixin$PlayerModel$RootModel$Mixin",
+    "client.PlayerRendererMixin$LivingEntityRendererMixin$HidePlayerModelIfNeeded"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

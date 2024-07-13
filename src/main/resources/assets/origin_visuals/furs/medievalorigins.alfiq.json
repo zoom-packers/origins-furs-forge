@@ -1,0 +1,9 @@
+{
+  "model": "origin_visuals:geo/medievalorigins.alfiq.geo.json",
+  "texture": "origin_visuals:textures/base.png",
+  "hidden": [],
+  "rendering_offsets": {
+    "left": [0,0.1,0],
+    "right": [0,0.1,0]
+  }
+}

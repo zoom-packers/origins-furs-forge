@@ -1,0 +1,4 @@
+{
+  "emissive_overlay": "origin_visuals:textures/arachnid/arachnid_eyes.png",
+  "overlay": "origin_visuals:textures/arachnid/arachnid.png"
+}
