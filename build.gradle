@@ -136,9 +136,9 @@ repositories {
 
     // If you have mod jar dependencies in ./libs, you can declare them as a repository like so.
     // See https://docs.gradle.org/current/userguide/declaring_repositories.html#sub:flat_dir_resolver
-    // flatDir {
-    //     dir 'libs'
-    // }
+     flatDir {
+         dir 'libs'
+     }
     maven {
         name = 'GeckoLib'
         url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
@@ -192,6 +192,9 @@ dependencies {
     implementation fg.deobf("io.github.edwinmindcraft:calio-forge:${calio_forge_version}")
     implementation fg.deobf("io.github.edwinmindcraft:apoli-forge:${apoli_forge_version}")
     implementation fg.deobf("io.github.edwinmindcraft:origins-forge:${origins_forge_version}")
+    runtimeOnly fg.deobf("curse.maven:pehkui-319596:5393101")
+    runtimeOnly fg.deobf("libs:dev.muon:medievalorigins")
+    runtimeOnly fg.deobf("curse.maven:shoulder-surfing-reloaded-243190:5555242")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
