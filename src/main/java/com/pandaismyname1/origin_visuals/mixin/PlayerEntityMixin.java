@@ -5,6 +5,7 @@ import com.pandaismyname1.origin_visuals.OriginFurModel;
 import com.pandaismyname1.origin_visuals.client.OriginalFurClient;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
+import io.github.edwinmindcraft.origins.api.origin.OriginLayer;
 import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.RemotePlayer;
 import net.minecraft.core.Direction;
@@ -28,6 +29,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Pseudo
 @Mixin(Player.class)
@@ -55,82 +57,92 @@ public abstract class PlayerEntityMixin implements IPlayerMixins {
     public static class ChangeElytraTextureMixin implements IPlayerMixins{
         @Inject(method="getElytraTextureLocation", at=@At("JUMP"), cancellable = true)
         void getElytraTextureMixin(CallbackInfoReturnable<ResourceLocation> cir) {
-            OriginFurModel m = originalFur$getCurrentModel();
-            // TODO IT's Breaking at originFur$getCurrentModel
-            if (m == null) {return;}
-            if (!m.hasCustomElytraTexture()) {
-                return;
+            var origins = originalFur$getCurrentFur();
+            for (var origin : origins) {
+                if (origin == null) {
+                    continue;
+                }
+                OriginFurModel m = originalFur$getCurrentModel(origin);
+                if (m == null) {return;}
+                if (!m.hasCustomElytraTexture()) {
+                    continue;
+                }
+                var eT = m.getElytraTexture();
+                cir.setReturnValue(eT);
             }
-            var eT = m.getElytraTexture();
-            cir.setReturnValue(eT);
             cir.cancel();
         }
     }
     @Override
-    public OriginalFurClient.OriginFur originalFur$getCurrentFur() {
-        var cO = originalFur$currentOrigins();
-        if (cO.length == 0) {return OriginalFurClient.OriginFur.NULL_OR_DEFAULT_FUR;}
-        try {
-            var origin = cO[0];
-            ResourceLocation id = getOriginResourceLocation(origin);
-            // TODO: replace this hack with a loop to iterate over a player's active origins (sometimes origins-classes is at idx 0.)
-            if (id.getNamespace().equalsIgnoreCase("origins-classes")){
-                for (Origin value : cO) {
-                    origin = value;
-
-                    if (getOriginResourceLocation(origin).getNamespace().equalsIgnoreCase("origins-classes")) {
-                        continue;
-                    }
-
-                    id = getOriginResourceLocation(origin);
-                }
-                if (id.getNamespace().equalsIgnoreCase("origins-classes")){
-                    System.out.println("[Origin Furs] No Origin was found in entity mixin: " + id + ". This should NEVER happen! Report this to the devs!");
-                    System.out.println(OriginalFurClient.FUR_REGISTRY.keySet());
-                    System.out.println("[Origin Furs] Listing all origins attached to player..");
-                    Arrays.stream(cO).forEach(System.out::println);
-                    System.out.println("[Origin Furs] Listed all registered furs. Please include the previous line!");
-                    System.out.println("[Origin Furs] Please copy all mods, and this log file and create an issue:");
-                    System.out.println("[Origin Furs] https://github.com/avetharun/OriginalFur/issues/new");
-                    return OriginalFurClient.OriginFur.NULL_OR_DEFAULT_FUR;
-                }
-            }
-            id = new ResourceLocation(id.getNamespace(), id.getPath().replace('/', '.').replace('\\', '.'));
-            var opt = OriginalFurClient.FUR_REGISTRY.get(id);
-            if (opt == null) {
-                opt = OriginalFurClient.FUR_REGISTRY.get(new ResourceLocation("origins", id.getPath()));
-                if (opt == null) {
-                    System.out.println("[Origin Furs] Fur was null in entity mixin: " + id + ". This should NEVER happen! Report this to the devs!");
-                    System.out.println(OriginalFurClient.FUR_REGISTRY.keySet());
-                    System.out.println("[Origin Furs] Listed all registered furs. Please include the previous line!");
-                    System.out.println("[Origin Furs] Please copy all mods, and this log file and create an issue:");
-                    System.out.println("[Origin Furs] https://github.com/avetharun/OriginalFur/issues/new");
-                    return null;
-                }
-            }
-            opt.currentAssociatedOrigin = origin;
-            return opt;
-        } catch (IndexOutOfBoundsException IOBE) {
-            System.err.println("[Origin Furs] Something very wrong happened!");
-            System.err.println(OriginalFurClient.FUR_REGISTRY.keySet());
-            System.err.println(Arrays.toString(originalFur$currentOrigins()));
-            System.err.println("[Origin Furs] Listed all registered furs. Please include the previous line!");
-            System.err.println("[Origin Furs] Please copy all mods, and this log file and create an issue:");
-            System.err.println("[Origin Furs] https://github.com/avetharun/OriginalFur/issues/new");
-            throw new RuntimeException(IOBE.fillInStackTrace().toString());
+    public List<OriginalFurClient.OriginFur> originalFur$getCurrentFur() {
+        var currentOrigins = originalFur$currentOrigins();
+        if (currentOrigins.length == 0) {
+            return new ArrayList<>();
         }
+        var result = new ArrayList<OriginalFurClient.OriginFur>();
+        var layersSet = OriginsAPI.getLayersRegistry().entrySet();
+        for (var entry : layersSet) {
+            var layer = entry.getValue();
+            if (layer == null) {
+                continue;
+            }
+            var layerId = entry.getKey();
+            Origin origin = findOriginForLayer(layer, currentOrigins);
+            if (origin == null) {
+                continue;
+            }
+            var originId = OriginsAPI.getOriginsRegistry().getKey(origin);
+            if (layerId.location().equals(new ResourceLocation("origins-classes", "class"))) {
+                var classId = new ResourceLocation("origins", "origins-classes." + originId.getPath());
+                var fur = OriginalFurClient.CLASSES_FUR_REGISTRY.getOrDefault(classId, null);
+                if (fur == null) {
+                    fur = OriginalFurClient.CLASSES_FUR_REGISTRY.getOrDefault(layerId.location(), null);
+                }
+                if (fur != null) {
+                    result.add(fur);
+                }
+            } else if (layerId.location().equals(new ResourceLocation("origins", "origin"))) {
+                var fur = OriginalFurClient.FUR_REGISTRY.getOrDefault(originId, null);
+                if (fur == null) {
+                    fur = OriginalFurClient.FUR_REGISTRY.getOrDefault(layerId.location(), null);
+                }
+                if (fur != null) {
+                    result.add(fur);
+                }
+            }
+        }
+        return result;
+    }
+
+    private static Origin findOriginForLayer(OriginLayer layer, Origin[] currentOrigins) {
+        var origins = layer.origins();
+        for (var holder : origins) {
+            var tempOrigin = holder.get();
+            for (var origin : currentOrigins) {
+                if (origin.getName().equals(tempOrigin.getName())) {
+                    return origin;
+                }
+            }
+        }
+        return null;
     }
 
     @Inject(method="actuallyHurt", at=@At("TAIL"))
     void applyDamageMixin(DamageSource source, float amount, CallbackInfo ci){
         Player e = (Player)(Object)this;
-        OriginFurModel m = originalFur$getCurrentModel();
-        if (m == null) {return;}
-        var r = m.getHurtSoundResource();
-        if (r.equals(new ResourceLocation("null"))) {return;}
-        var sE = ForgeRegistries.SOUND_EVENTS.getValue(r);
-        if (sE == null) {return;}
-        e.level().playSound(null, e.blockPosition(), sE, SoundSource.PLAYERS);
+        var origins = originalFur$getCurrentFur();
+        for (var origin : origins) {
+            if (origin == null) {
+                continue;
+            }
+            OriginFurModel m = originalFur$getCurrentModel(origin);
+            if (m == null) {continue;}
+            var r = m.getHurtSoundResource();
+            if (r.equals(new ResourceLocation("null"))) {return;}
+            var sE = ForgeRegistries.SOUND_EVENTS.getValue(r);
+            if (sE == null) {continue;}
+            e.level().playSound(null, e.blockPosition(), sE, SoundSource.PLAYERS);
+        }
 
     }
     @Override

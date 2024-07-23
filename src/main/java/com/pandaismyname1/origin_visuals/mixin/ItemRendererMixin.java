@@ -21,18 +21,21 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public class ItemRendererMixin <T extends LivingEntity, M extends EntityModel<T> & ArmedModel> {
     void renderItemMixin(LivingEntity entity, ItemStack stack, ItemDisplayContext context, boolean arm, PoseStack matrices, MultiBufferSource vertexStack, int something, CallbackInfo ci) {
         if (entity instanceof Player cPE && entity instanceof IPlayerMixins iPE) {
-            var m = iPE.originalFur$getCurrentModel();
-            if (m == null) {
-                return;
-            }
-            Vec3 o = Vec3.ZERO;
-            if (arm == true) {
-                o = m.getLeftOffset();
-            } else {
-                o = m.getRightOffset();
+            var origins = iPE.originalFur$getCurrentFur();
+            for (var originFur : origins) {
+                var m = iPE.originalFur$getCurrentModel(originFur);
+                if (m == null) {
+                    continue;
+                }
+                Vec3 o = Vec3.ZERO;
+                if (arm == true) {
+                    o = m.getLeftOffset();
+                } else {
+                    o = m.getRightOffset();
 
+                }
+                matrices.translate(o.x, o.y, o.z);
             }
-            matrices.translate(o.x, o.y, o.z);
         }
 
     }

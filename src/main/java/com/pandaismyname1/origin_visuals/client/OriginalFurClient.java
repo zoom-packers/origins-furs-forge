@@ -8,17 +8,13 @@ import com.pandaismyname1.origin_visuals.IPlayerMixins;
 import com.pandaismyname1.origin_visuals.OriginFurAnimatable;
 import com.pandaismyname1.origin_visuals.OriginFurModel;
 import com.pandaismyname1.origin_visuals.OriginVisuals;
-import dev.kosmx.playerAnim.core.util.Vec3f;
-import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationAccess;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationFactory;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
-import mod.azure.azurelib.cache.object.*;
 import mod.azure.azurelib.renderer.GeoObjectRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -29,10 +25,7 @@ import net.minecraftforge.fml.ModList;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class OriginalFurClient {
 
@@ -58,15 +51,15 @@ public class OriginalFurClient {
         @Override
         public void setupAnim(float v) {
             if (player != null && player instanceof IPlayerMixins iPE) {
-                var m = iPE.originalFur$getCurrentModel();
-                if (m == null) {
-                    return;
+                var origins = iPE.originalFur$getCurrentFur();
+                for (var originFur : origins) {
+                    var m = iPE.originalFur$getCurrentModel(originFur);
+                    if (m == null) {
+                        continue;
+                    }
+                    var lP = m.getLeftOffset();
+                    var rP = m.getRightOffset();
                 }
-                var lP = m.getLeftOffset();
-                var rP = m.getRightOffset();
-//                leftItem.pos = new Vec3f((float) lP.x, (float) lP.y, (float) lP.z);
-//                rightItem.pos = new Vec3f((float) rP.x, (float) rP.y, (float) rP.z);
-
             }
         }
 
@@ -123,6 +116,7 @@ public class OriginalFurClient {
     public static boolean isRenderingInWorld = false;
 
     public static LinkedHashMap<ResourceLocation, OriginFur> FUR_REGISTRY = new LinkedHashMap<>();
+    public static LinkedHashMap<ResourceLocation, OriginFur> CLASSES_FUR_REGISTRY = new LinkedHashMap<>();
     public static LinkedHashMap<ResourceLocation, Resource> FUR_RESOURCES = new LinkedHashMap<>();
 
     public static void reload(ResourceManager manager) {
@@ -141,34 +135,60 @@ public class OriginalFurClient {
                 FUR_REGISTRY.remove(id);
                 FUR_RESOURCES.remove(id);
             }
-            if (FUR_REGISTRY.containsKey(id)) {
-                OriginFurModel m = (OriginFurModel) FUR_REGISTRY.get(id).getGeoModel();
-                try {
-                    m.recompile(JsonParser.parseString(new String(resources.get(res).open().readAllBytes())).getAsJsonObject());
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            if (itemName.contains("origins-classes")) {
+                addToRegistry(CLASSES_FUR_REGISTRY, res, id, resources);
             } else {
-                FUR_RESOURCES.put(id, resources.get(res));
+                addToRegistry(FUR_REGISTRY, res, id, resources);
             }
         }
-        var entries = new ArrayList<>(OriginsAPI.getOriginsRegistry().entrySet());
-        for (var entry : entries) {
-            var oID = entry.getKey();
-            ResourceLocation id = oID.location();
-            var fur = OriginalFurClient.FUR_RESOURCES.getOrDefault(id, null);
-            if (fur == null) {
-                fur = OriginalFurClient.FUR_RESOURCES.getOrDefault(id, null);
-            }
-            if (fur == null) {
-                OriginalFurClient.FUR_REGISTRY.put(id, new OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
-            } else {
-                try {
-                    OriginalFurClient.FUR_REGISTRY.put(id, new  OriginFur(JsonParser.parseString(new String(fur.open().readAllBytes())).getAsJsonObject()));
-                } catch (IOException e) {
-                    System.err.println(e.getMessage());
+        var layerRegistry = new ArrayList<>(OriginsAPI.getLayersRegistry().entrySet());
+        for (var layerEntry : layerRegistry) {
+            var layerId = layerEntry.getKey();
+            var layer = layerEntry.getValue();
+            var allOrigins = layer.origins().stream().toList();
+            for (var holder : allOrigins) {
+                var origin = holder.get();
+                var originId = OriginsAPI.getOriginsRegistry().getKey(origin);
+
+                if (layerId.location().getNamespace().equals("origins-classes")) {
+                    originId = new ResourceLocation("origins", "origins-classes." + originId.getPath());
+                }
+
+                var fur = OriginalFurClient.FUR_RESOURCES.getOrDefault(originId, null);
+                if (fur == null) {
+                    fur = OriginalFurClient.FUR_RESOURCES.getOrDefault(originId, null);
+                }
+                if (layerId.location().getNamespace().equals("origins-classes")) {
+                    submitResources(CLASSES_FUR_REGISTRY, fur, originId);
+                } else {
+                    submitResources(FUR_REGISTRY, fur, originId);
                 }
             }
+        }
+    }
+
+    private static void submitResources(LinkedHashMap<ResourceLocation, OriginFur> registry, Resource fur, ResourceLocation id) {
+        if (fur == null) {
+            registry.put(id, new OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
+        } else {
+            try {
+                registry.put(id, new  OriginFur(JsonParser.parseString(new String(fur.open().readAllBytes())).getAsJsonObject()));
+            } catch (IOException e) {
+                System.err.println(e.getMessage());
+            }
+        }
+    }
+
+    private static void addToRegistry(LinkedHashMap<ResourceLocation, OriginFur> registry, ResourceLocation res, ResourceLocation id, Map<ResourceLocation, Resource> resources) {
+        if (registry.containsKey(id)) {
+            OriginFurModel m = (OriginFurModel) registry.get(id).getGeoModel();
+            try {
+                m.recompile(JsonParser.parseString(new String(resources.get(res).open().readAllBytes())).getAsJsonObject());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            FUR_RESOURCES.put(id, resources.get(res));
         }
     }
 

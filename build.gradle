@@ -194,6 +194,7 @@ dependencies {
     implementation fg.deobf("io.github.edwinmindcraft:origins-forge:${origins_forge_version}")
     runtimeOnly fg.deobf("curse.maven:pehkui-319596:5393101")
     runtimeOnly fg.deobf("libs:dev.muon:medievalorigins")
+    runtimeOnly fg.deobf("libs:dev.limonblaze:originsclasses")
     runtimeOnly fg.deobf("curse.maven:shoulder-surfing-reloaded-243190:5555242")
 }
 

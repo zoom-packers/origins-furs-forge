@@ -163,35 +163,38 @@ public class PlayerRendererMixin {
                     }
                     Minecraft.getInstance().getProfiler().push("originalfurs:" + origin.location().getPath());
                     ResourceLocation id = origin.location();
-                    var opt = ((IPlayerMixins) abstractClientPlayerEntity).originalFur$getCurrentFur();
-                    if (opt == null) {
-                        return;
-                    }
-                    OriginFurModel m_Model = (OriginFurModel) opt.getGeoModel();
+                    // TODO Adapt for multiple furs
+                    var furs = ((IPlayerMixins) abstractClientPlayerEntity).originalFur$getCurrentFur();
+                    for (var fur : furs) {
+                        if (fur == null) {
+                            continue;
+                        }
+                        OriginFurModel m_Model = (OriginFurModel) fur.getGeoModel();
 
-                    m_Model.preRender$mixinOnly(abstractClientPlayerEntity);
-                    if (m_Model.isPlayerModelInvisible()) {
-                        isInvisible = true;
-                        matrixStack.translate(0, 9999, 0);
-                    } else {
-                        isInvisible = false;
-                    }
+                        m_Model.preRender$mixinOnly(abstractClientPlayerEntity);
+                        if (m_Model.isPlayerModelInvisible()) {
+                            isInvisible = true;
+                            matrixStack.translate(0, 9999, 0);
+                        } else {
+                            isInvisible = false;
+                        }
 
-                    if (!isInvisible) {
-                        var p = m_Model.getHiddenParts();
-                        var model = (PlayerModel<?>) this.getModel();
-                        model.hat.skipDraw = p.contains(OriginFurModel.VMP.hat);
-                        model.head.skipDraw = p.contains(OriginFurModel.VMP.head);
-                        model.body.skipDraw = p.contains(OriginFurModel.VMP.body);
-                        model.jacket.skipDraw = p.contains(OriginFurModel.VMP.jacket);
-                        model.leftArm.skipDraw = p.contains(OriginFurModel.VMP.leftArm);
-                        model.leftSleeve.skipDraw = p.contains(OriginFurModel.VMP.leftSleeve);
-                        model.rightArm.skipDraw = p.contains(OriginFurModel.VMP.rightArm);
-                        model.rightSleeve.skipDraw = p.contains(OriginFurModel.VMP.rightSleeve);
-                        model.leftLeg.skipDraw = p.contains(OriginFurModel.VMP.leftLeg);
-                        model.leftPants.skipDraw = p.contains(OriginFurModel.VMP.leftPants);
-                        model.rightLeg.skipDraw = p.contains(OriginFurModel.VMP.rightLeg);
-                        model.rightPants.skipDraw = p.contains(OriginFurModel.VMP.rightPants);
+                        if (!isInvisible) {
+                            var p = m_Model.getHiddenParts();
+                            var model = (PlayerModel<?>) this.getModel();
+                            model.hat.skipDraw = model.hat.skipDraw || p.contains(OriginFurModel.VMP.hat);
+                            model.head.skipDraw = model.head.skipDraw || p.contains(OriginFurModel.VMP.head);
+                            model.body.skipDraw = model.body.skipDraw || p.contains(OriginFurModel.VMP.body);
+                            model.jacket.skipDraw = model.jacket.skipDraw || p.contains(OriginFurModel.VMP.jacket);
+                            model.leftArm.skipDraw = model.leftArm.skipDraw || p.contains(OriginFurModel.VMP.leftArm);
+                            model.leftSleeve.skipDraw = model.leftSleeve.skipDraw || p.contains(OriginFurModel.VMP.leftSleeve);
+                            model.rightArm.skipDraw = model.rightArm.skipDraw || p.contains(OriginFurModel.VMP.rightArm);
+                            model.rightSleeve.skipDraw = model.rightSleeve.skipDraw || p.contains(OriginFurModel.VMP.rightSleeve);
+                            model.leftLeg.skipDraw = model.leftLeg.skipDraw || p.contains(OriginFurModel.VMP.leftLeg);
+                            model.leftPants.skipDraw = model.leftPants.skipDraw || p.contains(OriginFurModel.VMP.leftPants);
+                            model.rightLeg.skipDraw = model.rightLeg.skipDraw || p.contains(OriginFurModel.VMP.rightLeg);
+                            model.rightPants.skipDraw = model.rightPants.skipDraw || p.contains(OriginFurModel.VMP.rightPants);
+                        }
                     }
                 }
             }
@@ -228,29 +231,31 @@ public class PlayerRendererMixin {
                     }
                     Minecraft.getInstance().getProfiler().push("originalfurs:" + origin.location().getPath());
                     ResourceLocation id = origin.location();
-                    var opt = ((IPlayerMixins) aCPE).originalFur$getCurrentFur();
-                    if (opt == null) {
-                        return;
-                    }
-                    var model = (ModelRootAccessor) (PlayerModel<?>) this.getModel();
-                    OriginFurModel m_Model = (OriginFurModel) opt.getGeoModel();
-                    var overlayTexture = m_Model.getOverlayTexture(model.originalFur$isSlim());
-                    var emissiveTexture = m_Model.getEmissiveTexture(model.originalFur$isSlim());
-                    boolean bl = this.isBodyVisible(livingEntity);
-                    boolean bl2 = !bl && !livingEntity.isInvisibleTo(Minecraft.getInstance().player);
-                    if (overlayTexture != null) {
-                        RenderType l = null;
-                        if (OriginalFurClient.isRenderingInWorld && ModList.get().isLoaded("oculus")) {
-                            l = RenderType.entityCutoutNoCullZOffset(overlayTexture);
-                        } else {
-                            l = RenderType.entityCutout(overlayTexture);
+                    var furs = ((IPlayerMixins) aCPE).originalFur$getCurrentFur();
+                    for (var fur : furs) {
+                        if (fur == null) {
+                            return;
                         }
-                        this.model.renderToBuffer(matrixStack, vertexConsumerProvider.getBuffer(l), i, p, 1, 1, 1, bl2 ? 0.15F : 1.0F);
-                    }
-                    if (emissiveTexture != null) {
+                        var model = (ModelRootAccessor) (PlayerModel<?>) this.getModel();
+                        OriginFurModel m_Model = (OriginFurModel) fur.getGeoModel();
+                        var overlayTexture = m_Model.getOverlayTexture(model.originalFur$isSlim());
+                        var emissiveTexture = m_Model.getEmissiveTexture(model.originalFur$isSlim());
+                        boolean bl = this.isBodyVisible(livingEntity);
+                        boolean bl2 = !bl && !livingEntity.isInvisibleTo(Minecraft.getInstance().player);
+                        if (overlayTexture != null) {
+                            RenderType l = null;
+                            if (OriginalFurClient.isRenderingInWorld && ModList.get().isLoaded("oculus")) {
+                                l = RenderType.entityCutoutNoCullZOffset(overlayTexture);
+                            } else {
+                                l = RenderType.entityCutout(overlayTexture);
+                            }
+                            this.model.renderToBuffer(matrixStack, vertexConsumerProvider.getBuffer(l), i, p, 1, 1, 1, bl2 ? 0.15F : 1.0F);
+                        }
+                        if (emissiveTexture != null) {
 
-                        RenderType l = RenderType.entityTranslucentEmissive(emissiveTexture);
-                        this.model.renderToBuffer(matrixStack, vertexConsumerProvider.getBuffer(l), i, p, 1, 1, 1, bl2 ? 0.15F : 1.0F);
+                            RenderType l = RenderType.entityTranslucentEmissive(emissiveTexture);
+                            this.model.renderToBuffer(matrixStack, vertexConsumerProvider.getBuffer(l), i, p, 1, 1, 1, bl2 ? 0.15F : 1.0F);
+                        }
                     }
                     var m = (PlayerModel<?>) this.getModel();
                     m.hat.skipDraw = false;
