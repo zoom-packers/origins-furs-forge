@@ -21,7 +21,7 @@ public abstract class Mojang_ModelPartMixin implements IMojModelPart {
 
     @Shadow public float z;
 
-    @Shadow public abstract PartPose getInitialPose();
+    @Shadow public abstract PartPose storePose();
 
     @Shadow public float xScale;
 
@@ -44,7 +44,7 @@ public abstract class Mojang_ModelPartMixin implements IMojModelPart {
 
     @Override
     public Vec3 originfurs$getPosition() {
-        var t = getInitialPose();
+        var t = storePose();
         return new Vec3(t.x / 16, t.y / 16, t.z / 16);
     }
     @Inject(method="<init>", at=@At("TAIL"))
@@ -58,6 +58,7 @@ public abstract class Mojang_ModelPartMixin implements IMojModelPart {
 
     @Override
     public Vec3 originfurs$getRotation() {
-        return new Vec3(xRot, yRot, zRot);
+        var t = storePose();
+        return new Vec3(t.xRot, t.yRot, t.zRot);
     }
 }

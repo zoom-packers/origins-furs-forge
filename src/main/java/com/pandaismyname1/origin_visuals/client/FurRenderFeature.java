@@ -116,17 +116,16 @@ public class FurRenderFeature <T extends LivingEntity, M extends HumanoidModel<T
                     m.translatePositionForBone("bipedRightLeg", ((IMojModelPart) (Object) eR.getModel().leftLeg).originfurs$getPosition().scale(-16f));
                     m.translatePositionForBone("bipedLeftArm", new Vec3(5, 2, 0));
                     m.translatePositionForBone("bipedRightArm", new Vec3(-5, 2, 0));
-//                m.translatePositionForBone("bipedLeftLeg", new Vec3(-1.9999,11.98,0.02));
                     m.translatePositionForBone("bipedLeftLeg", new Vec3(-2, 12, 0));
                     m.translatePositionForBone("bipedRightLeg", new Vec3(2, 12, 0));
 
-                    var isCrouching = abstractClientPlayerEntity.isCrouching();
-                    if (isCrouching) {
-                        m.translatePositionForBone("bipedHead", new Vec3(0, -4, 0));
-                        m.translatePositionForBone("bipedBody", new Vec3(0, -3, 0));
-                        m.translatePositionForBone("bipedLeftArm", new Vec3(0, -3, 0));
-                        m.translatePositionForBone("bipedRightArm", new Vec3(0, -3, 0));
-                    }
+//                    var isCrouching = abstractClientPlayerEntity.isCrouching();
+//                    if (isCrouching) {
+//                        m.translatePositionForBone("bipedHead", new Vec3(0, -4, 0));
+//                        m.translatePositionForBone("bipedBody", new Vec3(0, -3, 0));
+//                        m.translatePositionForBone("bipedLeftArm", new Vec3(0, -3, 0));
+//                        m.translatePositionForBone("bipedRightArm", new Vec3(0, -3, 0));
+//                    }
 
                     matrixStack.translate(-0.5, -0.5, -0.5);
                     m.setRotationForBone("bipedBody", ((IMojModelPart) (Object) eR.getModel().body).originfurs$getRotation());
