@@ -11,6 +11,7 @@ import com.pandaismyname1.origin_visuals.OriginVisuals;
 import dev.kosmx.playerAnim.minecraftApi.PlayerAnimationFactory;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import io.github.edwinmindcraft.origins.api.origin.Origin;
+import io.github.edwinmindcraft.origins.common.registry.OriginRegisters;
 import mod.azure.azurelib.renderer.GeoObjectRenderer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -148,7 +149,13 @@ public class OriginalFurClient {
             var allOrigins = layer.origins().stream().toList();
             for (var holder : allOrigins) {
                 var origin = holder.get();
-                var originId = OriginsAPI.getOriginsRegistry().getKey(origin);
+                var originName = origin.getName().getString();
+                var possibleSyncedOrigin = OriginsAPI.getOriginsRegistry().stream().filter(e -> e.getName().getString().equals(originName)).findFirst();
+                if (possibleSyncedOrigin.isEmpty()) {
+                    continue;
+                }
+                var syncedOrigin = possibleSyncedOrigin.get();
+                var originId = OriginsAPI.getOriginsRegistry().getKey(syncedOrigin);
 
                 if (layerId.location().getNamespace().equals("origins-classes")) {
                     originId = new ResourceLocation("origins", "origins-classes." + originId.getPath());

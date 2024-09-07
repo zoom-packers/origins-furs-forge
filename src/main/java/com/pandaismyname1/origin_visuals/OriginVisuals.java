@@ -19,6 +19,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.AddReloadListenerEvent;
 import net.minecraftforge.event.BuildCreativeModeTabContentsEvent;
@@ -86,26 +87,6 @@ public class OriginVisuals {
         Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
 
         FURS.register("default", () -> new OriginalFurClient.OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
-//
-//        OriginsAPI.getOriginsRegistry().entrySet().forEach(ResourceLocationOriginEntry -> {
-//            var oID = ResourceLocationOriginEntry.getKey();
-//            var o = ResourceLocationOriginEntry.getValue();
-//            ResourceLocation id = oID.location();
-//            var fur = OriginalFurClient.FUR_RESOURCES.getOrDefault(id, null);
-//            if (fur == null) {
-//                fur = OriginalFurClient.FUR_RESOURCES.getOrDefault(id, null);
-//            }
-//            if (fur == null) {
-//                FURS.register(id.getPath(), () -> new OriginalFurClient.OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
-//            } else {
-//                try {
-//                    var json = new String(fur.open().readAllBytes());
-//                    FURS.register(id.getPath(), () -> new OriginalFurClient.OriginFur(JsonParser.parseString(new String(json)).getAsJsonObject()));
-//                } catch (IOException e) {
-//                    System.err.println(e.getMessage());
-//                }
-//            }
-//        });
         LOGGER.info("FURS >> {}", FURS.getEntries());
     }
 
@@ -136,7 +117,12 @@ public class OriginVisuals {
         }
 
         @SubscribeEvent
-        public static void tick(TickEvent event)
+        public static void onPlayerJoin(ClientPlayerNetworkEvent.LoggingIn event) {
+            OriginalFurClient.reload(Minecraft.getInstance().getResourceManager());
+        }
+
+        @SubscribeEvent
+        public static void tick(TickEvent.ClientTickEvent event)
         {
             if (event.side.isClient()) {
                 ticks++;
