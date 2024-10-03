@@ -10,16 +10,21 @@ import com.pandaismyname1.origin_visuals.client.OriginalFurClient;
 import io.github.edwinmindcraft.origins.api.OriginsAPI;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.PlayerModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
+import net.minecraft.client.renderer.entity.RenderLayerParent;
+import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.entity.player.PlayerRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.resources.model.ModelManager;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.fml.ModList;
@@ -31,6 +36,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+
+import static net.minecraft.world.entity.EquipmentSlot.*;
 
 @Pseudo
 @Mixin(value = PlayerRenderer.class, priority = 99999)
@@ -194,6 +201,30 @@ public class PlayerRendererMixin {
                             model.leftPants.skipDraw = model.leftPants.skipDraw || p.contains(OriginFurModel.VMP.leftPants);
                             model.rightLeg.skipDraw = model.rightLeg.skipDraw || p.contains(OriginFurModel.VMP.rightLeg);
                             model.rightPants.skipDraw = model.rightPants.skipDraw || p.contains(OriginFurModel.VMP.rightPants);
+
+
+                            var armorLayers = this.layers.stream().filter((layer1) -> layer1 instanceof HumanoidArmorLayer).toArray();
+                            for (var l : armorLayers) {
+                                var humanoidArmorLayer = (HumanoidArmorLayer) l;
+                                if (humanoidArmorLayer.innerModel != null) {
+                                    humanoidArmorLayer.innerModel.hat.skipDraw = model.hat.skipDraw || p.contains(OriginFurModel.VMP.hat);
+                                    humanoidArmorLayer.innerModel.head.skipDraw = model.head.skipDraw || p.contains(OriginFurModel.VMP.head);
+                                    humanoidArmorLayer.innerModel.body.skipDraw = model.body.skipDraw || p.contains(OriginFurModel.VMP.body);
+                                    humanoidArmorLayer.innerModel.leftArm.skipDraw = model.leftArm.skipDraw || p.contains(OriginFurModel.VMP.leftArm);
+                                    humanoidArmorLayer.innerModel.rightArm.skipDraw = model.rightArm.skipDraw || p.contains(OriginFurModel.VMP.rightArm);
+                                    humanoidArmorLayer.innerModel.leftLeg.skipDraw = model.leftLeg.skipDraw || p.contains(OriginFurModel.VMP.leftLeg);
+                                    humanoidArmorLayer.innerModel.rightLeg.skipDraw = model.rightLeg.skipDraw || p.contains(OriginFurModel.VMP.rightLeg);
+                                }
+                                if (humanoidArmorLayer.outerModel != null) {
+                                    humanoidArmorLayer.outerModel.hat.skipDraw = model.hat.skipDraw || p.contains(OriginFurModel.VMP.hat);
+                                    humanoidArmorLayer.outerModel.head.skipDraw = model.head.skipDraw || p.contains(OriginFurModel.VMP.head);
+                                    humanoidArmorLayer.outerModel.body.skipDraw = model.body.skipDraw || p.contains(OriginFurModel.VMP.body);
+                                    humanoidArmorLayer.outerModel.leftArm.skipDraw = model.leftArm.skipDraw || p.contains(OriginFurModel.VMP.leftArm);
+                                    humanoidArmorLayer.outerModel.rightArm.skipDraw = model.rightArm.skipDraw || p.contains(OriginFurModel.VMP.rightArm);
+                                    humanoidArmorLayer.outerModel.leftLeg.skipDraw = model.leftLeg.skipDraw || p.contains(OriginFurModel.VMP.leftLeg);
+                                    humanoidArmorLayer.outerModel.rightLeg.skipDraw = model.rightLeg.skipDraw || p.contains(OriginFurModel.VMP.rightLeg);
+                                }
+                            }
                         }
                     }
                 }
