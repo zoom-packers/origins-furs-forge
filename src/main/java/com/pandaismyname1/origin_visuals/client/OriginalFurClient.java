@@ -180,7 +180,7 @@ public class OriginalFurClient {
         } else {
             try {
                 registry.put(id, new  OriginFur(JsonParser.parseString(new String(fur.open().readAllBytes())).getAsJsonObject()));
-            } catch (IOException e) {
+            } catch (IOException | IllegalStateException e) {
                 System.err.println(e.getMessage());
             }
         }
