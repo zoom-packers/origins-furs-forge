@@ -154,7 +154,7 @@ repositories {
         url = "https://maven.theillusivec4.top/"
     }
     maven { 
-        url 'https://libs.azuredoom.com:4443/mods'
+        url 'https://maven.azuredoom.com/mods'
     }
     maven {
         url "https://cursemaven.com"
