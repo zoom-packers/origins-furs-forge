@@ -37,13 +37,11 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegisterEvent;
-import net.minecraftforge.registries.RegistryObject;
+import net.minecraftforge.registries.*;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.function.Supplier;
 
 // The value here should match an entry in the META-INF/mods.toml file
 @Mod(OriginVisuals.MODID)
@@ -54,18 +52,20 @@ public class OriginVisuals {
     // Directly reference a slf4j logger
     private static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final DeferredRegister<Resource> FUR_RESOURCES = DeferredRegister.create(OriginalFurClient.FursDynamicRegistries.FUR_RESOURCES_REGISTRY, MODID);
     private static final DeferredRegister<OriginalFurClient.OriginFur> FURS = DeferredRegister.create(OriginalFurClient.FursDynamicRegistries.FURS_REGISTRY, MODID);
+    public static final Supplier<IForgeRegistry<OriginalFurClient.OriginFur>> FURS_REGISTRY = FURS.makeRegistry(RegistryBuilder::new);
 
 
     public OriginVisuals() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
+        FURS.register("default", () -> new OriginalFurClient.OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
+        FURS.register(modEventBus);
+
         // Register the commonSetup method for modloading
         modEventBus.addListener(this::commonSetup);
         // Register ourselves for server and other game events we are interested in
 
-        FURS.register(modEventBus);
 
         MinecraftForge.EVENT_BUS.register(this);
 
@@ -75,19 +75,6 @@ public class OriginVisuals {
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
-        // Some common setup code
-        LOGGER.info("HELLO FROM COMMON SETUP");
-        LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        if (Config.logDirtBlock)
-            LOGGER.info("DIRT BLOCK >> {}", ForgeRegistries.BLOCKS.getKey(Blocks.DIRT));
-
-        LOGGER.info(Config.magicNumberIntroduction + Config.magicNumber);
-
-        Config.items.forEach((item) -> LOGGER.info("ITEM >> {}", item.toString()));
-
-        FURS.register("default", () -> new OriginalFurClient.OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
-        LOGGER.info("FURS >> {}", FURS.getEntries());
     }
 
     // You can use SubscribeEvent and let the Event Bus discover methods to call

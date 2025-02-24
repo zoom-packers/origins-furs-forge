@@ -13,6 +13,7 @@ import io.github.edwinmindcraft.origins.api.origin.Origin;
 import io.github.edwinmindcraft.origins.common.capabilities.OriginContainer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.player.AbstractClientPlayer;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
@@ -66,7 +67,7 @@ public class FurRenderFeature <T extends LivingEntity, M extends HumanoidModel<T
     }
     @Override
     public void render(PoseStack matrixStack, MultiBufferSource vertexConsumerProvider, int light, T entity, float limbAngle, float limbDistance, float tickDelta, float animationProgress, float headYaw, float headPitch) {
-        if (entity instanceof LocalPlayer abstractClientPlayerEntity) {
+        if (entity instanceof AbstractClientPlayer abstractClientPlayerEntity) {
             if (abstractClientPlayerEntity.isInvisible() || abstractClientPlayerEntity.isSpectator()) {return;}
             var iPEM = (IPlayerMixins) abstractClientPlayerEntity;
             var furs = iPEM.originalFur$getCurrentFur();
