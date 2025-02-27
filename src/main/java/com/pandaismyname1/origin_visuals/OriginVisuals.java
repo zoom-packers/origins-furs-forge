@@ -29,6 +29,7 @@ import net.minecraftforge.event.server.ServerStartingEvent;
 import net.minecraftforge.eventbus.api.EventPriority;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
@@ -59,7 +60,11 @@ public class OriginVisuals {
     public OriginVisuals() {
         IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 
-        FURS.register("default", () -> new OriginalFurClient.OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
+        // Check if running on the client or server
+        DistExecutor.runWhenOn(Dist.CLIENT, () -> () -> {
+            // Register the client-only event handler
+            FURS.register("default", () -> new OriginalFurClient.OriginFur(JsonParser.parseString("{}").getAsJsonObject()));
+        });
         FURS.register(modEventBus);
 
         // Register the commonSetup method for modloading
@@ -92,10 +97,7 @@ public class OriginVisuals {
         @SubscribeEvent(priority = EventPriority.LOWEST)
         public static void onClientSetup(FMLClientSetupEvent event)
         {
-            // Some client setup code
-            LOGGER.info("HELLO FROM CLIENT SETUP");
-            LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
-//            OriginalFurClient.reload(Minecraft.getInstance().getResourceManager());
+
         }
 
         @SubscribeEvent(priority = EventPriority.LOWEST)
@@ -106,18 +108,6 @@ public class OriginVisuals {
         @SubscribeEvent
         public static void onPlayerJoin(ClientPlayerNetworkEvent.LoggingIn event) {
             OriginalFurClient.reload(Minecraft.getInstance().getResourceManager());
-        }
-
-        @SubscribeEvent
-        public static void tick(TickEvent.ClientTickEvent event)
-        {
-            if (event.side.isClient()) {
-                ticks++;
-                if (ticks % 1000 == 0) {
-                    OriginalFurClient.reload(Minecraft.getInstance().getResourceManager());
-                    ticks = 0;
-                }
-            }
         }
     }
 }
